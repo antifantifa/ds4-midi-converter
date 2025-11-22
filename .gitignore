@@ -1,0 +1,11 @@
+# Compiled binaries
+gcmidi
+list_devices
+
+# Build directories
+build/
+*.o
+
+# macOS files (from original project)
+*.m
+Makefile.mac
