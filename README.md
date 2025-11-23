@@ -37,7 +37,7 @@ A real-time bridge that transforms your Sony PlayStation DualShock 4 controller 
     ```
 3.  **Clone and run:**
     ```bash
-    git clone https://github.com//antifantifa/ds4-to-midi.git
+    git clone https://github.com/antifantifa/ds4-to-midi.git
     cd ds4-to-midi
     python main.py
     ```
