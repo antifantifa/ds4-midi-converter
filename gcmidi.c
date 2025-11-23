@@ -42,6 +42,11 @@
 #define NOTE_R3 47
 #define NOTE_PS 48
 #define NOTE_TOUCHPAD 49
+// D-pad notes
+#define NOTE_DPAD_LEFT 50
+#define NOTE_DPAD_RIGHT 51
+#define NOTE_DPAD_UP 52
+#define NOTE_DPAD_DOWN 53
 
 typedef struct {
     // Analog inputs
@@ -53,6 +58,9 @@ typedef struct {
     int square, cross, circle, triangle;
     int l1, r1, l2_btn, r2_btn;
     int share, options, l3, r3, ps, touchpad;
+    
+    // D-pad state
+    int dpad_x, dpad_y;
 } controller_state_t;
 
 snd_seq_t *seq;
@@ -241,6 +249,8 @@ void print_usage() {
     printf("  Buttons: Square=%d, Cross=%d, Circle=%d, Triangle=%d\n",
            NOTE_SQUARE, NOTE_CROSS, NOTE_CIRCLE, NOTE_TRIANGLE);
     printf("  Shoulders: L1=%d, R1=%d\n", NOTE_L1, NOTE_R1);
+    printf("  D-pad: Left=%d, Right=%d, Up=%d, Down=%d\n",
+           NOTE_DPAD_LEFT, NOTE_DPAD_RIGHT, NOTE_DPAD_UP, NOTE_DPAD_DOWN);
     printf("\n");
     printf("Press Ctrl+C to exit\n");
 }
@@ -377,6 +387,40 @@ int main(int argc, char *argv[]) {
                                     send_cc(CC_RIGHT_Y_POS, (filtered_value > stick_center) ? pos_val : 0);
                                     state.right_y = filtered_value;
                                 }
+                            }
+                            break;
+                        case ABS_HAT0X: // D-pad X
+                            if (ev.value != state.dpad_x) {
+                                // Release previous X direction
+                                if (state.dpad_x == -1) send_note_off(NOTE_DPAD_LEFT, 0);
+                                if (state.dpad_x == 1) send_note_off(NOTE_DPAD_RIGHT, 0);
+                                
+                                // Press new X direction  
+                                if (ev.value == -1) {
+                                    send_note_on(NOTE_DPAD_LEFT, 127);
+                                    printf("D-pad Left\n");
+                                } else if (ev.value == 1) {
+                                    send_note_on(NOTE_DPAD_RIGHT, 127);
+                                    printf("D-pad Right\n");
+                                }
+                                state.dpad_x = ev.value;
+                            }
+                            break;
+                        case ABS_HAT0Y: // D-pad Y
+                            if (ev.value != state.dpad_y) {
+                                // Release previous Y direction
+                                if (state.dpad_y == -1) send_note_off(NOTE_DPAD_UP, 0);
+                                if (state.dpad_y == 1) send_note_off(NOTE_DPAD_DOWN, 0);
+                                
+                                // Press new Y direction
+                                if (ev.value == -1) {
+                                    send_note_on(NOTE_DPAD_UP, 127);
+                                    printf("D-pad Up\n");
+                                } else if (ev.value == 1) {
+                                    send_note_on(NOTE_DPAD_DOWN, 127);
+                                    printf("D-pad Down\n");
+                                }
+                                state.dpad_y = ev.value;
                             }
                             break;
                     }
