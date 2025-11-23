@@ -1,216 +1,59 @@
-# 🎮 DS4 to MIDI Converter
+# DS4 to MIDI Converter
 
-A professional-grade tool that converts Sony DualShock 4 controller input into MIDI messages for music production and live performance.
+![Python](https://img.shields.io/badge/Python-3.8%2B-blue) ![License](https://img.shields.io/badge/License-MIT-green)
 
-![DS4 MIDI Badge](https://img.shields.io/badge/DS4-MIDI_Controller-blue?style=for-the-badge)
-![Linux Compatible](https://img.shields.io/badge/Linux-Compatible-success?style=for-the-badge\&logo=linux)
-![License MIT](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+A real-time bridge that transforms your Sony PlayStation DualShock 4 controller into a fully customizable, multi-purpose MIDI controller. Built in Python, this tool unlocks the unique sensors of the DS4—including the accelerometer, gyroscope, and touchpad—for musical expression, going far beyond standard button-to-key mapping.
 
----
+## Features
 
-## ✨ Features
+*   **Multi-Sensor Support:** Map a wide range of controller inputs to MIDI:
+    *   **Buttons & Triggers:** Standard and shoulder buttons, analog triggers (L2/R2).
+    *   **Motion Controls:** 3-axis Accelerometer and Gyroscope for dynamic, gesture-based control.
+    *   **Touchpad:** Use finger position and tap events on the touchpad.
+    *   **D-Pad & Sticks:** Directional pad and analog sticks.
 
-* 🎛️ **Complete Controller Mapping**: All buttons, triggers, and analog sticks mapped to MIDI
-* 🎯 **Smart Device Detection**: Automatically finds main controller, excludes motion sensors
-* ⚡ **Low Latency**: Real-time input processing with ALSA MIDI output
-* 🔧 **Drift Correction**: Built-in deadzone to handle stick drift
-* 🎹 **DAW Ready**: Works with any MIDI-compatible software (Ardour, Reaper, Bitwig, etc.)
+*   **Flexible MIDI Output:**
+    *   **Note On/Off:** Trigger melodic notes or drum hits.
+    *   **Control Change (CC):** Send continuous data for parameters like volume, filter cutoff, and modulation.
+    *   **Program Change:** Switch presets or scenes in your DAW.
 
----
+*   **Real-Time & Low-Latency:** Utilizes `pygame` for robust controller input and `python-rtmidi` for efficient MIDI output.
 
-## 🚀 Quick Start
+*   **Dynamic Configuration:** Easily customize all mappings (button-to-MIDI, sensor-to-CC, etc.) via a clean and well-documented configuration file (`config.py`). No code changes needed for most adjustments.
 
-### Prerequisites
+## Use Cases
 
-#### Ubuntu/Debian
+*   **Live Electronic Performance:** Use gestures and taps to trigger clips, control effects, and manipulate synths on stage.
+*   **Studio Production:** Add expressive, non-traditional modulation to your tracks using the motion sensors and touchpad.
+*   **Accessible Music Making:** Provides an alternative, game-like interface for music creation.
+*   **Interactive Installations:** A low-cost hardware interface for interactive art and sound installations.
 
-```bash
-sudo apt install libevdev-dev libasound2-dev build-essential
+## Quick Start
+
+1.  **Connect your DS4** to your computer via Bluetooth or USB.
+2.  **Install dependencies:**
+    ```bash
+    pip install pygame python-rtmidi
+    ```
+3.  **Clone and run:**
+    ```bash
+    git clone https://github.com//antifantifa/ds4-to-midi.git
+    cd ds4-to-midi
+    python main.py
+    ```
+4.  **Configure your DAW** to receive MIDI from the "DS4-MIDI" virtual port.
+
+## Configuration
+
+Edit `config.py` to define your own mappings. The structure is intuitive:
+```python
+# Example: Map the Cross button to MIDI Note 36
+BUTTON_MAPPINGS = {
+    'cross': {'type': 'note', 'channel': 1, 'note': 36, 'velocity': 127}
+}
+
+# Example: Map X-axis tilt to CC #1 (Mod Wheel)
+GYRO_MAPPINGS = {
+    'x': {'type': 'cc', 'channel': 1, 'controller': 1}
+}
 ```
-
-#### Fedora
-
-```bash
-sudo dnf install libevdev-devel alsa-lib-devel gcc
-```
-
-#### Arch
-
-```bash
-sudo pacman -S libevdev alsa-lib base-devel
-```
-
-### Installation
-
-```bash
-git clone https://github.com/yourusername/ds4-midi-converter
-cd ds4-midi-converter
-make
-sudo ./gcmidi
-```
-
----
-
-## 🎮 MIDI Mapping
-
-### Analog Controls (CC Messages)
-
-| Control       | MIDI CC  | Behavior                 |
-| ------------- | -------- | ------------------------ |
-| L2 Trigger    | CC 20    | 0-127 pressure sensitive |
-| R2 Trigger    | CC 21    | 0-127 pressure sensitive |
-| Left Stick X  | CC 22/23 | Split negative/positive  |
-| Left Stick Y  | CC 24/25 | Split negative/positive  |
-| Right Stick X | CC 26/27 | Split negative/positive  |
-| Right Stick Y | CC 28/29 | Split negative/positive  |
-
-### Buttons (MIDI Notes)
-
-| Button    | MIDI Note | Button    | MIDI Note |
-| --------- | --------- | --------- | --------- |
-| Square    | 36        | L1        | 40        |
-| Cross     | 37        | R1        | 41        |
-| Circle    | 38        | L2 Button | 42        |
-| Triangle  | 39        | R2 Button | 43        |
-| Share     | 44        | L3        | 46        |
-| Options   | 45        | R3        | 47        |
-| PS Button | 48        | Touchpad  | 49        |
-
----
-
-## 🛠️ Building from Source
-
-```bash
-git clone https://github.com/yourusername/ds4-midi-converter
-cd ds4-midi-converter
-make
-
-# Install system-wide (optional)
-sudo make install
-```
-
----
-
-## 📖 Usage
-
-### Basic Usage
-
-```bash
-# Automatic device detection
-sudo ./gcmidi
-
-# Manual device specification
-sudo ./gcmidi /dev/input/event20
-```
-
-### System Service (Optional)
-
-```bash
-sudo cp gcmidi /usr/local/bin/
-sudo nano /etc/systemd/system/gcmidi.service
-```
-
-**service file:**
-
-```ini
-[Unit]
-Description=DS4 MIDI Controller
-After=network.target
-
-[Service]
-Type=simple
-ExecStart=/usr/local/bin/gcmidi
-Restart=always
-User=root
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-sudo systemctl enable gcmidi.service
-sudo systemctl start gcmidi.service
-```
-
----
-
-## ⚙️ Configuration
-
-### Adjusting Deadzone
-
-Edit `gcmidi.c` around line ~217:
-
-```c
-int deadzone_value = 15;  // Increase for more drift tolerance
-```
-
-### Custom MIDI Mapping
-
-Modify CC and Note definitions inside the source code.
-
----
-
-## 🔧 Troubleshooting
-
-### Controller Not Detected
-
-```bash
-evtest
-sudo evtest /dev/input/event20
-```
-
-### MIDI Output Not Working
-
-```bash
-aconnect -l
-aseqdump -p "DS4 Controller"
-```
-
-### Permission Issues
-
-```bash
-sudo usermod -a -G input $USER
-sudo ./gcmidi
-```
-
----
-
-## 🎹 Creative Applications
-
-* 🎵 Live Performance: Map sticks to filter sweeps and effects
-* 🎹 Drum Trigger: Use buttons for drum pads
-* 🎛️ Parameter Control: Assign triggers to expression pedals
-* 🎚️ Mixing: Use sticks for fader and pan control
-
----
-
-## 📁 Project Structure
-
-```
-ds4-midi-converter/
-├── gcmidi.c          # Main source code
-├── Makefile          # Build configuration
-├── README.md         # This file
-└── LICENSE           # MIT License
-```
-
----
-
-
-## 📜 License
-
-MIT License — see LICENSE file.
-
----
-
-## 🙏 Acknowledgments
-
-* Based on original gcmidi by Jeff Kaufman
-* DS4 Linux driver community
-* ALSA and libevdev developers
-
----
-
-### Happy music making! 🎶
-
-If this project helped you, consider giving it a ⭐ on GitHub!
