@@ -1,6 +1,6 @@
 # DS4 to MIDI Converter
 
-A high-performance C-based bridge that converts PlayStation DualShock 4 controller input into MIDI messages. Based on the original gcmidi by Jeff Kaufman, with enhanced device detection and user-friendly command-line interface.
+A high-performance C-based bridge that converts PlayStation DualShock 4 controller input into MIDI messages. Based on the original gcmidi by Jeff Kaufman, with enhanced device detection, user-friendly command-line interface, and optimized trigger behavior for DJ software.
 
 ## Features
 
@@ -10,6 +10,7 @@ A high-performance C-based bridge that converts PlayStation DualShock 4 controll
   - Buttons send MIDI notes
   - Analog sticks and triggers send Control Change messages
   - D-pad sends directional note commands
+- **Optimized Trigger Behavior**: Center detent for L2/R2 triggers (64 when released) for smooth crossfader control
 - **Deadzone Handling**: Built-in stick drift compensation
 - **ALSA MIDI Output**: Creates virtual MIDI port for DAW integration
 - **User-Friendly Interface**: Command-line options for easy device selection
@@ -24,6 +25,11 @@ sudo apt-get install libasound2-dev libevdev-dev
 
 ### Building
 
+```bash
+make
+```
+
+Or compile manually:
 ```bash
 gcc -Wall -Wextra -O2 -std=gnu11 -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE -I/usr/include/libevdev-1.0/ -o gcmidi gcmidi.c -levdev -lasound
 ```
@@ -67,7 +73,7 @@ sudo ./gcmidi --device /dev/input/event4
 - **D-pad**: Left=50, Right=51, Up=52, Down=53
 
 ### Analog Controls (CC Messages)
-- **Triggers**: L2=CC20, R2=CC21
+- **Triggers**: L2=CC20, R2=CC21 (with center detent at 64)
 - **Left Stick**: 
   - X-axis: CC22 (left) / CC23 (right)
   - Y-axis: CC24 (up) / CC25 (down)
@@ -89,8 +95,9 @@ Use `--list-devices` to see all available DS4 devices and their types.
 
 - **Enhanced Device Detection**: Automatic filtering of controller, motion, and touchpad devices
 - **Command-Line Interface**: Easy device selection without recompilation
-- **Warning-Free Compilation**: Clean build output for better user experience
+- **Warning-Free Compilation**: Clean build output
 - **Better Error Handling**: Clear messages for common connection issues
+- **Optimized Triggers**: Center detent (64) when triggers are released for smooth crossfader control in DJ software
 
 ## Troubleshooting
 
@@ -115,8 +122,8 @@ If multiple DS4 controllers are connected, use `--device` with the specific path
 
 - **MIDI Channel**: 0
 - **Stick Range**: 0-255 (center: 127)
-- **Trigger Range**: 0-255
-- **Deadzone**: ±15 (adjustable in code)
+- **Trigger Range**: 0-255 (center detent at 64 when released)
+- **Deadzone**: ±15
 - **Sample Rate**: ~1ms latency
 
 ## License
