@@ -1,59 +1,128 @@
 # DS4 to MIDI Converter
 
-![Python](https://img.shields.io/badge/Python-3.8%2B-blue) ![License](https://img.shields.io/badge/License-MIT-green)
-
-A real-time bridge that transforms your Sony PlayStation DualShock 4 controller into a fully customizable, multi-purpose MIDI controller. Built in Python, this tool unlocks the unique sensors of the DS4—including the accelerometer, gyroscope, and touchpad—for musical expression, going far beyond standard button-to-key mapping.
+A high-performance C-based bridge that converts PlayStation DualShock 4 controller input into MIDI messages. Based on the original gcmidi by Jeff Kaufman, with enhanced device detection and user-friendly command-line interface.
 
 ## Features
 
-*   **Multi-Sensor Support:** Map a wide range of controller inputs to MIDI:
-    *   **Buttons & Triggers:** Standard and shoulder buttons, analog triggers (L2/R2).
-    *   **Motion Controls:** 3-axis Accelerometer and Gyroscope for dynamic, gesture-based control.
-    *   **Touchpad:** Use finger position and tap events on the touchpad.
-    *   **D-Pad & Sticks:** Directional pad and analog sticks.
+- **Low Latency**: C-based implementation for minimal delay
+- **Multiple Device Support**: Choose between controller inputs, motion sensors, or touchpad
+- **Comprehensive MIDI Mapping**:
+  - Buttons send MIDI notes
+  - Analog sticks and triggers send Control Change messages
+  - D-pad sends directional note commands
+- **Deadzone Handling**: Built-in stick drift compensation
+- **ALSA MIDI Output**: Creates virtual MIDI port for DAW integration
+- **User-Friendly Interface**: Command-line options for easy device selection
 
-*   **Flexible MIDI Output:**
-    *   **Note On/Off:** Trigger melodic notes or drum hits.
-    *   **Control Change (CC):** Send continuous data for parameters like volume, filter cutoff, and modulation.
-    *   **Program Change:** Switch presets or scenes in your DAW.
+## Installation
 
-*   **Real-Time & Low-Latency:** Utilizes `pygame` for robust controller input and `python-rtmidi` for efficient MIDI output.
+### Dependencies
 
-*   **Dynamic Configuration:** Easily customize all mappings (button-to-MIDI, sensor-to-CC, etc.) via a clean and well-documented configuration file (`config.py`). No code changes needed for most adjustments.
-
-## Use Cases
-
-*   **Live Electronic Performance:** Use gestures and taps to trigger clips, control effects, and manipulate synths on stage.
-*   **Studio Production:** Add expressive, non-traditional modulation to your tracks using the motion sensors and touchpad.
-*   **Accessible Music Making:** Provides an alternative, game-like interface for music creation.
-*   **Interactive Installations:** A low-cost hardware interface for interactive art and sound installations.
-
-## Quick Start
-
-1.  **Connect your DS4** to your computer via Bluetooth or USB.
-2.  **Install dependencies:**
-    ```bash
-    pip install pygame python-rtmidi
-    ```
-3.  **Clone and run:**
-    ```bash
-    git clone https://github.com/antifantifa/ds4-to-midi.git
-    cd ds4-to-midi
-    python main.py
-    ```
-4.  **Configure your DAW** to receive MIDI from the "DS4-MIDI" virtual port.
-
-## Configuration
-
-Edit `config.py` to define your own mappings. The structure is intuitive:
-```python
-# Example: Map the Cross button to MIDI Note 36
-BUTTON_MAPPINGS = {
-    'cross': {'type': 'note', 'channel': 1, 'note': 36, 'velocity': 127}
-}
-
-# Example: Map X-axis tilt to CC #1 (Mod Wheel)
-GYRO_MAPPINGS = {
-    'x': {'type': 'cc', 'channel': 1, 'controller': 1}
-}
+```bash
+sudo apt-get install libasound2-dev libevdev-dev
 ```
+
+### Building
+
+```bash
+gcc -Wall -Wextra -O2 -std=gnu11 -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE -I/usr/include/libevdev-1.0/ -o gcmidi gcmidi.c -levdev -lasound
+```
+
+## Usage
+
+### Basic Usage
+```bash
+sudo ./gcmidi
+```
+
+### List Available Devices
+```bash
+./gcmidi --list-devices
+```
+
+### Use Specific Device Type
+```bash
+# Use controller inputs (buttons, sticks, triggers) - DEFAULT
+sudo ./gcmidi --controller
+
+# Use motion sensors (accelerometer, gyroscope)
+sudo ./gcmidi --motion
+
+# Use touchpad input
+sudo ./gcmidi --touchpad
+```
+
+### Use Specific Device Path
+```bash
+sudo ./gcmidi --device /dev/input/event4
+```
+
+## MIDI Mapping
+
+### Buttons (Note Messages)
+- **Face Buttons**: Square=36, Cross=37, Circle=38, Triangle=39
+- **Shoulders**: L1=40, R1=41, L2=42, R2=43
+- **System**: Share=44, Options=45, PS=48
+- **Stick Press**: L3=46, R3=47
+- **D-pad**: Left=50, Right=51, Up=52, Down=53
+
+### Analog Controls (CC Messages)
+- **Triggers**: L2=CC20, R2=CC21
+- **Left Stick**: 
+  - X-axis: CC22 (left) / CC23 (right)
+  - Y-axis: CC24 (up) / CC25 (down)
+- **Right Stick**:
+  - X-axis: CC26 (left) / CC27 (right)
+  - Y-axis: CC28 (up) / CC29 (down)
+
+## Device Selection
+
+The DS4 creates three separate HID devices. To avoid conflicts, select only one type:
+
+- **Controller**: Buttons, analog sticks, triggers, D-pad (recommended for MIDI)
+- **Motion**: Accelerometer and gyroscope data
+- **Touchpad**: Touch position and tap events
+
+Use `--list-devices` to see all available DS4 devices and their types.
+
+## Recent Improvements
+
+- **Enhanced Device Detection**: Automatic filtering of controller, motion, and touchpad devices
+- **Command-Line Interface**: Easy device selection without recompilation
+- **Warning-Free Compilation**: Clean build output for better user experience
+- **Better Error Handling**: Clear messages for common connection issues
+
+## Troubleshooting
+
+### Permission Issues
+```bash
+sudo chmod a+rw /dev/input/event*
+```
+Or add your user to the `input` group:
+```bash
+sudo usermod -a -G input $USER
+```
+
+### No Devices Found
+- Ensure DS4 is connected via USB or Bluetooth
+- Check `dmesg | tail` for connection events
+- Use `--list-devices` to verify detection
+
+### Multiple Controllers
+If multiple DS4 controllers are connected, use `--device` with the specific path shown in `--list-devices`.
+
+## Technical Details
+
+- **MIDI Channel**: 0
+- **Stick Range**: 0-255 (center: 127)
+- **Trigger Range**: 0-255
+- **Deadzone**: ±15 (adjustable in code)
+- **Sample Rate**: ~1ms latency
+
+## License
+
+Based on gcmidi by Jeff Kaufman. Modified with improved device handling and user interface.
+
+## Contributing
+
+Feel free to pull requests for improvements and bug fixes.
