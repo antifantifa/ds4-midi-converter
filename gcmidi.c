@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 199309L
+#define _POSIX_C_SOURCE 200809L
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -184,8 +184,8 @@ void list_available_devices() {
                     if (name && (strstr(name, "Wireless Controller") || 
                                 strstr(name, "Sony Interactive Entertainment Wireless Controller"))) {
                         
-                        strncpy(devices[device_count].path, path, sizeof(devices[device_count].path)-1);
-                        strncpy(devices[device_count].name, name ? name : "Unknown", sizeof(devices[device_count].name)-1);
+                        snprintf(devices[device_count].path, sizeof(devices[device_count].path), "%s", path);
+                        snprintf(devices[device_count].name, sizeof(devices[device_count].name), "%s", name ? name : "Unknown");
                         
                         if (strstr(name, "Motion")) {
                             strcpy(devices[device_count].type, "motion");
@@ -252,21 +252,21 @@ char* find_ds4_device_by_type(const char* preferred_type) {
                                 strstr(name, "Sony Interactive Entertainment Wireless Controller"))) {
                         
                         if (strstr(name, "Motion") && strcmp(preferred_type, "motion") == 0) {
-                            strncpy(best_device.path, path, sizeof(best_device.path)-1);
-                            strncpy(best_device.name, name, sizeof(best_device.name)-1);
+                            snprintf(best_device.path, sizeof(best_device.path), "%s", path);
+                            snprintf(best_device.name, sizeof(best_device.name), "%s", name);
                             found_count++;
                             printf("Found motion device: %s\n", path);
                         } else if (strstr(name, "Touchpad") && strcmp(preferred_type, "touchpad") == 0) {
-                            strncpy(best_device.path, path, sizeof(best_device.path)-1);
-                            strncpy(best_device.name, name, sizeof(best_device.name)-1);
+                            snprintf(best_device.path, sizeof(best_device.path), "%s", path);
+                            snprintf(best_device.name, sizeof(best_device.name), "%s", name);
                             found_count++;
                             printf("Found touchpad device: %s\n", path);
                         } else if (!strstr(name, "Motion") && !strstr(name, "Touchpad") && 
                                    strcmp(preferred_type, "controller") == 0) {
                             if (libevdev_has_event_code(dev, EV_KEY, BTN_SOUTH) &&
                                 libevdev_has_event_code(dev, EV_ABS, ABS_X)) {
-                                strncpy(best_device.path, path, sizeof(best_device.path)-1);
-                                strncpy(best_device.name, name, sizeof(best_device.name)-1);
+                                snprintf(best_device.path, sizeof(best_device.path), "%s", path);
+                                snprintf(best_device.name, sizeof(best_device.name), "%s", name);
                                 found_count++;
                                 printf("Found controller device: %s\n", path);
                             }
@@ -287,7 +287,11 @@ char* find_ds4_device_by_type(const char* preferred_type) {
                    found_count, preferred_type, best_device.path);
         }
         printf("Selected: %s\n", best_device.path);
-        return strdup(best_device.path);
+        char *path_copy = malloc(strlen(best_device.path) + 1);
+        if (path_copy) {
+            strcpy(path_copy, best_device.path);
+            return path_copy;
+        }
     }
     
     printf("No %s device found!\n", preferred_type);
